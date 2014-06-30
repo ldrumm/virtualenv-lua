@@ -46,5 +46,6 @@ make build && make install
 cd "$INSTALL_DIR"
 ./bin/luarocks path > bin/activate
 echo "export PATH=$INSTALL_DIR/bin/:\$PATH" >> bin/activate
+rm -R "$INSTALL_DIR/luarocks-$LUAROCKS_VERSION_STRING"
 rm -R "$BUILD_DIR"
 
