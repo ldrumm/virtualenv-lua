@@ -105,7 +105,7 @@ cd "luarocks-$LUAROCKS_VERSION_STRING"
 
 cd "$INSTALL_DIR"
 ./bin/luarocks path > bin/activate
-echo "export PATH=$INSTALL_DIR/bin/:\$PATH" >> bin/activate
+echo "export PATH=$INSTALL_DIR/bin:\$PATH" >> bin/activate
 rm -R "$BUILD_DIR/luarocks-$LUAROCKS_VERSION_STRING"
 rm -R "$BUILD_DIR"
 
