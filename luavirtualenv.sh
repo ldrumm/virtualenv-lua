@@ -4,10 +4,10 @@
 #This script is probably not very robust but allows you to easily create isolated environments into which you install a bunch of packages
 #with LuaRocks
 #Like the Python program, the system Lua executable is copied, and that version is used for a local LuaRocks build.
-#source bin/actvate
+#Use ``source bin/actvate`` from bash to activate the new virtualenv
 
-LUAROCKS_TAR_GZ_URL="http://www.luarocks.org/releases/luarocks-2.1.2.tar.gz"
-LUAROCKS_VERSION_STRING="2.1.2"
+LUAROCKS_VERSION_STRING="2.2.0"
+LUAROCKS_DOWNLOAD_BASEDIR="https://keplerproject.github.io/luarocks/releases"
 LUA_INCLUDE_PATH=/usr/include/
 SYS_LUA=`which lua`
 INSTALL_DIR=$PWD
@@ -16,7 +16,7 @@ usage(){
 cat <<EOF
 Available options:
     -r <version>    install luarocks version=<version> (default: $LUAROCKS_VERSION_STRING)
-    -l <path>       use lua installation from <path> (default: `which lua`)
+    -l <path>       use lua installation from <path> (default: $SYS_LUA )
     -d <dir>        create lua virtualenv in <dir> (defaults to the working directory)
 EOF
 }
@@ -42,7 +42,7 @@ while getopts ":r:l:d:" opt; do
                 err_exit "'$OPTARG' does not appear to be a valid luaRocks version"
             fi
             echo $LUAROCKS_TAR_GZ_URL
-            LUAROCKS_TAR_GZ_URL="http://www.luarocks.org/releases/luarocks-$LUAROCKS_VERSION_STRING.tar.gz"
+
         ;;
         l)
             SYS_LUA="$OPTARG"
@@ -67,6 +67,8 @@ while getopts ":r:l:d:" opt; do
     esac
 done
 
+LUAROCKS_TAR_GZ_URL="$LUAROCKS_DOWNLOAD_BASEDIR/luarocks-$LUAROCKS_VERSION_STRING.tar.gz"
+
 echo "installing in $INSTALL_DIR"
 
 if [ ! -n "$SYS_LUA" ] ; then
@@ -74,7 +76,7 @@ if [ ! -n "$SYS_LUA" ] ; then
 fi
 
 LUA_VERSION=`$SYS_LUA -e 'print(_VERSION:match("%d.%d$"))'`
-if [ ! -n "$LUA_VERSION" ] ; then 
+if [ ! -n "$LUA_VERSION" ] ; then
     err_exit "Could not detect system Lua version"
 fi
 
@@ -92,7 +94,7 @@ echo "installing luarocks into $BUILD_DIR..."
 
 BUILD_DIR=`mktemp -d `
 cd "$BUILD_DIR"
-wget "$LUAROCKS_TAR_GZ_URL" -O - | tar -xzf - || err_exit "Couldn't fetch $LUAROCKS_TAR_GZ_URL"
+wget "$LUAROCKS_TAR_GZ_URL" -O - | tar -xz || err_exit "Couldn't fetch $LUAROCKS_TAR_GZ_URL"
 cd "luarocks-$LUAROCKS_VERSION_STRING"
 
 #configure
@@ -105,7 +107,6 @@ cd "luarocks-$LUAROCKS_VERSION_STRING"
 
 cd "$INSTALL_DIR"
 ./bin/luarocks path > bin/activate
-echo "export PATH=$INSTALL_DIR/bin:\$PATH" >> bin/activate
-rm -R "$BUILD_DIR/luarocks-$LUAROCKS_VERSION_STRING"
+echo "export PATH=\"$INSTALL_DIR/bin:\$PATH\"" >> bin/activate
 rm -R "$BUILD_DIR"
 
