@@ -9,7 +9,7 @@
 LUAROCKS_VERSION_STRING="2.2.0"
 LUAROCKS_DOWNLOAD_BASEDIR="https://keplerproject.github.io/luarocks/releases"
 LUA_INCLUDE_PATH=/usr/include/
-SYS_LUA=`which lua`
+SYS_LUA=$(which lua)
 INSTALL_DIR=$PWD
 
 usage(){
@@ -75,7 +75,7 @@ if [ ! -n "$SYS_LUA" ] ; then
     err_exit "Couldn't detect Lua installation"
 fi
 
-LUA_VERSION=`$SYS_LUA -e 'print(_VERSION:match("%d.%d$"))'`
+LUA_VERSION=$($SYS_LUA -e 'print(_VERSION:match("%d.%d$"))')
 if [ ! -n "$LUA_VERSION" ] ; then
     err_exit "Could not detect system Lua version"
 fi
@@ -92,7 +92,7 @@ mkdir -p "$INSTALL_DIR/bin" || err_exit "mkdir failed"
 cp "$SYS_LUA" "$INSTALL_DIR/bin/lua"
 echo "installing luarocks into $BUILD_DIR..."
 
-BUILD_DIR=`mktemp -d `
+BUILD_DIR=$(mktemp -d "$INSTALL_DIR/.luarocks_buildXXXX")
 cd "$BUILD_DIR"
 wget "$LUAROCKS_TAR_GZ_URL" -O - | tar -xz || err_exit "Couldn't fetch $LUAROCKS_TAR_GZ_URL"
 cd "luarocks-$LUAROCKS_VERSION_STRING"
