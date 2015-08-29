@@ -1,16 +1,19 @@
-#!/bin/bash
+#!/bin/sh
 
-#This is a very simple and dirty way to build Python-virtualenv-like virtual environments for Lua using LuaRocks.
-#This script is probably not very robust but allows you to easily create isolated environments into which you install a bunch of packages
-#with LuaRocks
-#Like the Python program, the system Lua executable is copied, and that version is used for a local LuaRocks build.
-#Use ``source bin/actvate`` from bash to activate the new virtualenv
+# This is a very simple and dirty way to build Python-virtualenv-like virtual
+# environments for Lua using LuaRocks.
+# This script is probably not very robust but allows you to easily create
+# isolated environments into which you install a bunch of packages with LuaRocks
+# Like the Python program, the system Lua executable is copied, and that version
+# is used for a local LuaRocks build.
+# Use ``source bin/activate`` to activate the new virtualenv.
+# If your shell does not support the ``source`` builtin, use the POSIX-compliant ``. bin/activate``
 
-LUAROCKS_VERSION_STRING="2.2.0"
+LUAROCKS_VERSION_STRING="2.2.2"
 LUAROCKS_DOWNLOAD_BASEDIR="https://keplerproject.github.io/luarocks/releases"
 LUA_INCLUDE_PATH=/usr/include/
-SYS_LUA=$(which lua)
-INSTALL_DIR=$PWD
+SYS_LUA=$(command -v lua)
+INSTALL_DIR=$(pwd)
 
 usage(){
 cat <<EOF
@@ -32,17 +35,16 @@ EOF
     exit 1
 }
 
-RE="^[0-9]+.[0-9]+.[0-9]+\w*[-]?$"
+GREP_VERSIONSTRING_RE="^[0-9]\{1,2\}\.[0-9]\{1,2\}\.[0-9]\{1,3\}\(\-[[:alnum:]]*\)\?$"
 while getopts ":r:l:d:" opt; do
     case $opt in
         r)
-            if [[ "$OPTARG" =~ $RE ]]; then
+            if [ $(echo "$OPTARG" | grep -e "$GREP_VERSIONSTRING_RE") ] ; then
                 LUAROCKS_VERSION_STRING="$OPTARG"
             else
                 err_exit "'$OPTARG' does not appear to be a valid luaRocks version"
             fi
-            echo $LUAROCKS_TAR_GZ_URL
-
+            echo "Will fetch LuaRocks $LUAROCKS_VERSION_STRING"
         ;;
         l)
             SYS_LUA="$OPTARG"
@@ -69,8 +71,6 @@ done
 
 LUAROCKS_TAR_GZ_URL="$LUAROCKS_DOWNLOAD_BASEDIR/luarocks-$LUAROCKS_VERSION_STRING.tar.gz"
 
-echo "installing in $INSTALL_DIR"
-
 if [ ! -n "$SYS_LUA" ] ; then
     err_exit "Couldn't detect Lua installation"
 fi
@@ -80,17 +80,18 @@ if [ ! -n "$LUA_VERSION" ] ; then
     err_exit "Could not detect system Lua version"
 fi
 
-if ! [ "$(ls -A $INSTALL_DIR 2> /dev/null)" == "" ]; then
+if ! [ "$(ls -A "$INSTALL_DIR" 2> /dev/null)" = "" ] ; then
     Y=""
     read -p "$INSTALL_DIR is not empty:continue anyway?(yN)" Y
     if  [ "$Y" != 'y' ] ; then
-        err_exit "ABORTING..."
+        err_exit "User aborted..."
     fi
 fi
 
-mkdir -p "$INSTALL_DIR/bin" || err_exit "mkdir failed"
-cp "$SYS_LUA" "$INSTALL_DIR/bin/lua"
 echo "installing luarocks into $BUILD_DIR..."
+mkdir -p "$INSTALL_DIR/bin" || err_exit "mkdir failed"
+cp "$SYS_LUA" "$INSTALL_DIR/bin/lua" || err_exit "couldn't copy lua binary"
+
 
 BUILD_DIR=$(mktemp -d "$INSTALL_DIR/.luarocks_buildXXXX")
 cd "$BUILD_DIR"
@@ -105,8 +106,45 @@ cd "luarocks-$LUAROCKS_VERSION_STRING"
 
 (make build && make install) || err_exit "LuaRocks build failed"
 
+
 cd "$INSTALL_DIR"
-./bin/luarocks path > bin/activate
-echo "export PATH=\"$INSTALL_DIR/bin:\$PATH\"" >> bin/activate
 rm -R "$BUILD_DIR"
 
+cat <<EOF >> "$INSTALL_DIR/bin/activate"
+_PROMPT="(Lua$LUA_VERSION:rocks-$(dirname "$INSTALL_DIR"))"
+
+deactivate () {
+    # reset old environment variables
+    export PATH="\$_OLD_PATH"
+    export LUA_PATH="\$_OLD_LUA_PATH"
+    export LUA_CPATH="\$_OLD_LUA_CPATH"
+    export PROMPT="\$_OLD_PROMPT"
+
+    unset _OLD_PATH
+    unset _OLD_LUA_PATH
+    unset _OLD_LUA_CPATH
+    unset _OLD_PROMPT
+
+    unset -f deactivate
+}
+
+export _OLD_PATH="\$PATH"
+export _OLD_LUA_PATH="\$LUA_PATH"
+export _OLD_LUA_CPATH="\$LUA_CPATH"
+export _OLD_PROMPT="\$PROMPT"
+
+export PATH="$INSTALL_DIR/bin:\$PATH"
+export PROMPT="\$_PROMPT\$PROMPT"
+unset _PROMPT
+
+#Now the LuaRocks specifics...
+EOF
+
+./bin/luarocks path >> bin/activate
+#We're done, notify the user
+echo
+echo
+echo "Successfully installed luarocks-$LUAROCKS_VERSION_STRING into $INSTALL_DIR"
+echo "Run 'source $INSTALL_DIR/bin/activate' to activate your LuaRocks environment"
+
+exit 0
