@@ -124,7 +124,7 @@ cd "$INSTALL_DIR"
 rm -R "$BUILD_DIR"
 
 cat <<EOF >> "$INSTALL_DIR/bin/activate"
-_PROMPT="(Lua$LUA_VERSION:rocks-$(dirname "$INSTALL_DIR"))"
+_PROMPT="(Lua$LUA_VERSION:rocks-$(dirname "$INSTALL_DIR/."))"
 
 deactivate () {
     # reset old environment variables
