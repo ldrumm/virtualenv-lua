@@ -35,6 +35,19 @@ EOF
     exit 1
 }
 
+httpget() {
+    if  command -v wget > /dev/null ; then
+        wget "$1" -O -
+        ret=$?
+    elif command -v curl > /dev/null ; then
+        curl "$1"
+        ret=$?
+    else
+        err_exit "Can't find a suitable http client"
+    fi
+    return $ret
+}
+
 GREP_VERSIONSTRING_RE="^[0-9]\{1,2\}\.[0-9]\{1,2\}\.[0-9]\{1,3\}\(\-[[:alnum:]]*\)\?$"
 while getopts ":r:l:d:" opt; do
     case $opt in
@@ -95,7 +108,7 @@ cp "$SYS_LUA" "$INSTALL_DIR/bin/lua" || err_exit "couldn't copy lua binary"
 
 BUILD_DIR=$(mktemp -d "$INSTALL_DIR/.luarocks_buildXXXX")
 cd "$BUILD_DIR"
-wget "$LUAROCKS_TAR_GZ_URL" -O - | tar -xz || err_exit "Couldn't fetch $LUAROCKS_TAR_GZ_URL"
+httpget "$LUAROCKS_TAR_GZ_URL" | tar -xz || err_exit "Couldn't fetch $LUAROCKS_TAR_GZ_URL"
 cd "luarocks-$LUAROCKS_VERSION_STRING"
 
 #configure
