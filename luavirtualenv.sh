@@ -15,12 +15,13 @@ LUA_INCLUDE_PATH=/usr/include/
 SYS_LUA=$(command -v lua)
 INSTALL_DIR=$(pwd)
 
-usage(){
+usage() {
 cat <<EOF
 Available options:
     -r <version>    install luarocks version=<version> (default: $LUAROCKS_VERSION_STRING)
     -l <path>       use lua installation from <path> (default: $SYS_LUA )
     -d <dir>        create lua virtualenv in <dir> (defaults to the working directory)
+    -h              display this message
 EOF
 }
 
@@ -49,7 +50,7 @@ httpget() {
 }
 
 GREP_VERSIONSTRING_RE="^[0-9]\{1,2\}\.[0-9]\{1,2\}\.[0-9]\{1,3\}\(\-[[:alnum:]]*\)\?$"
-while getopts ":r:l:d:" opt; do
+while getopts ":hr:l:d:" opt; do
     case $opt in
         r)
             if [ $(echo "$OPTARG" | grep -e "$GREP_VERSIONSTRING_RE") ] ; then
@@ -70,6 +71,10 @@ while getopts ":r:l:d:" opt; do
             if ! [ -d "$INSTALL_DIR" ] ; then
                 mkdir -p "$INSTALL_DIR" || err_exit "Couldn't create $INSTALL_DIR"
             fi
+        ;;
+        h)
+            echo HELO
+            usage ; exit 0
         ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2 ; usage 1
