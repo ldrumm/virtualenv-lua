@@ -27,7 +27,7 @@ Available options:
 EOF
 }
 
-err_exit(){
+err_exit() {
 cat <<EOF
 ==========================================
 An error occurred and installation failed:
@@ -118,8 +118,8 @@ cd "$BUILD_DIR"
 httpget "$LUAROCKS_TAR_GZ_URL" | tar -xz || err_exit "Couldn't fetch $LUAROCKS_TAR_GZ_URL"
 cd "luarocks-$LUAROCKS_VERSION_STRING"
 
-#configure
-(./configure  --prefix="$INSTALL_DIR" --rocks-tree="$INSTALL_DIR" \
+# configure and install
+(./configure --prefix="$INSTALL_DIR" --rocks-tree="$INSTALL_DIR" \
 --lua-version="$LUA_VERSION" --with-lua="$INSTALL_DIR" \
 --sysconfdir="$INSTALL_DIR/luarocks" --force-config \
 --with-lua-include="$LUA_INCLUDE_PATH") || err_exit "failed to configure"
@@ -157,11 +157,12 @@ export PATH="$INSTALL_DIR/bin:\$PATH"
 export PROMPT="\$_PROMPT\$PROMPT"
 unset _PROMPT
 
-#Now the LuaRocks specifics...
+# Now the LuaRocks specifics...
 EOF
 
 ./bin/luarocks path >> bin/activate
-#We're done, notify the user
+
+# We're done, notify the user
 echo
 echo
 echo "Successfully installed luarocks-$LUAROCKS_VERSION_STRING into $INSTALL_DIR"
