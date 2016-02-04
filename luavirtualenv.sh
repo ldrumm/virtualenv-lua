@@ -9,11 +9,13 @@
 # Use ``source bin/activate`` to activate the new virtualenv.
 # If your shell does not support the ``source`` builtin, use the POSIX-compliant ``. bin/activate``
 
+set -e
+
 LUAROCKS_VERSION_STRING="2.2.2"
 LUAROCKS_DOWNLOAD_BASEDIR="https://keplerproject.github.io/luarocks/releases"
 LUA_INCLUDE_PATH=/usr/include/
-SYS_LUA=$(command -v lua)
-INSTALL_DIR=$(pwd)
+SYS_LUA="$(command -v lua)"
+INSTALL_DIR="$(pwd)"
 
 usage() {
 cat <<EOF
@@ -93,7 +95,7 @@ if [ ! -n "$SYS_LUA" ] ; then
     err_exit "Couldn't detect Lua installation"
 fi
 
-LUA_VERSION=$($SYS_LUA -e 'print(_VERSION:match("%d.%d$"))')
+LUA_VERSION="$("$SYS_LUA" -e 'print(_VERSION:match("%d.%d$"))')"
 if [ ! -n "$LUA_VERSION" ] ; then
     err_exit "Could not detect system Lua version"
 fi
@@ -111,7 +113,7 @@ mkdir -p "$INSTALL_DIR/bin" || err_exit "mkdir failed"
 cp "$SYS_LUA" "$INSTALL_DIR/bin/lua" || err_exit "couldn't copy lua binary"
 
 
-BUILD_DIR=$(mktemp -d "$INSTALL_DIR/.luarocks_buildXXXX")
+BUILD_DIR="$(mktemp -d "$INSTALL_DIR/.luarocks_buildXXXX")"
 cd "$BUILD_DIR"
 httpget "$LUAROCKS_TAR_GZ_URL" | tar -xz || err_exit "Couldn't fetch $LUAROCKS_TAR_GZ_URL"
 cd "luarocks-$LUAROCKS_VERSION_STRING"
