@@ -67,7 +67,7 @@ while getopts ":hr:l:d:" opt; do
             fi
         ;;
         d)
-            INSTALL_DIR="$OPTARG"
+            INSTALL_DIR="$(readlink -f "$OPTARG")"
             if ! [ -d "$INSTALL_DIR" ] ; then
                 mkdir -p "$INSTALL_DIR" || err_exit "Couldn't create $INSTALL_DIR"
             fi
