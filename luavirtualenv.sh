@@ -75,7 +75,6 @@ while getopts ":hr:l:d:" opt; do
             fi
         ;;
         h)
-            echo HELO
             usage ; exit 0
         ;;
         \?)
